@@ -15,7 +15,8 @@ function TodoList() {
             todoText={todo.inputText}
             completed={todo.completed}
             timestamp={todo.timestamp}
-            reminders = {todo.alerts}
+            reminders = {todo.todosDetails.reminder}
+            active={todo.selected}
           />
           ).reverse()}
       </ul>
