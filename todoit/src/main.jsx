@@ -20,7 +20,7 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path='/' element={<App />}  >
       <Route  path='mode' element={<MainLayout />} >
-        <Route index path='tasks' element={<TodoList />} />
+        <Route index path='tasks' element={<Tasks />} />
         <Route path='flagged-email' element={<FlaggedEmail />} />
         <Route path='assigned-to-me' element={<AssignedToMe />} />
         <Route path='planned' element={<Planned />} />

@@ -1,25 +1,22 @@
 import React, {Fragment, useState} from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { ADD_NOTE, ADD_STEPS, SET_REMINDER } from '../reducer'
+import { ADD_NOTE, ADD_STEPS, SET_REMINDER, TOGGLE_ADD_TO_MY_DAY } from '../reducer'
+import Reminder from './schedulingTools/Reminder'
 
 
 function DetailedTodo() {
 
+  const dispatch = useDispatch()
   const [steps, setSteps] = useState('')
+  const [customReminder, setCustomReminder] = useState(false)
+  const getTodoDetails = useSelector((state)=>state.todos)
   const [selected, setSelected] = useState({
     remindme: false,
     dueDate: false,
     repeat: false,
   })
-  const [customReminder, setCustomReminder] = useState(false)
-
-
-  const dispatch = useDispatch()
-
-  const getTodoDetails = useSelector((state)=>state.todos)
 
   const activeTodo = getTodoDetails.filter(active=>active.selected == true)
-
   const note = activeTodo[0]?.notes
   const id = activeTodo[0]?.id
 
@@ -200,6 +197,22 @@ function DetailedTodo() {
 
   }
 
+  const handleClose = (e) => {
+    setCustomReminder(true)
+    setSelected({
+      remindme: false,
+      dueDate: false,
+      repeat: false})
+  }
+
+  const addToMyDay = (e) => {
+    e.preventDefault()
+    dispatch({
+      "type": TOGGLE_ADD_TO_MY_DAY,
+      "payload": id
+    })
+  }
+
 
   return (
 
@@ -232,10 +245,14 @@ function DetailedTodo() {
               </article>
           </article>
 
+          <article className="detailed-todo-elements" onClick={addToMyDay}>
+              <span>Add to my day</span>
+          </article>
+
           <article id="edit-reminders" className='detailed-todo-elements'>
             <ul className='set-schedule'>
 
-              <li className='detailed-customs'>
+             {/*} <li className='detailed-customs'>
 
                   <input type='radio' className='detail-option' id="remindme"  name="options"  onBlur={handleBlur}  onChange={checked}/>
 
@@ -282,7 +299,20 @@ function DetailedTodo() {
                     </article>
                   </span> : <span></span>
                   )}
-              </li>
+                          </li> */}
+
+              <Reminder
+                handleBlur={handleBlur}
+                checked = {checked}
+                activeTodo={activeTodo}
+                selected={selected}
+                extractTime={extractTime}
+                customReminder={customReminder}
+                handleClose={handleClose}
+                handleCustomReminder={handleClose}
+            />
+
+
 
               <li className='detailed-customs'>
 
@@ -330,6 +360,7 @@ function DetailedTodo() {
 
             </ul>
           </article>
+
 
           <article className='detailed-todo-elements'>
               <h3>Add file</h3>

@@ -1,6 +1,7 @@
 import { combineReducers } from "redux"
 import todoDetailedReducer from "./features/detailedTodos/todoDetailedReducer"
 import todoItemsReducer from "./features/todo_items/todo_items_reducer"
+import DetailedTodo from "./components/DetailedTodo"
 
 // Auto increment id
 function nextTodoId(todos) {
@@ -13,6 +14,9 @@ function nextTodoId(todos) {
 export const ADD_TODO_ITEM = "todo/addTodo"
 export const REMOVE_TODO_ITEM = "todo/removeTodo"
 export const COMPLETE_TODO_ITEM = "todo/completeTodo"
+
+export const TOGGLE_IMPORTANCE = "todo/toggleImportance"
+export const TOGGLE_ADD_TO_MY_DAY = "todo/toggleAddToMyDay"
 
 export const SET_REMINDER = "todo/setReminder"
 export const TOGGLE_REMINDER = "todo/toggleReminder"
@@ -30,12 +34,13 @@ const initialState = {
             inputText: "New test",
             completed: false,
             selected: true,
+            important: true,
             steps : [''],
             timestamp: new Date().toLocaleString(),
             notes: "This is a personal note",
             todosDetails: {
                 steps: [],
-                isInMyDay: false,
+                isInMyDay: true,
                 reminder: {
                     isReminding: false,
                     reminderDate: "",
@@ -131,6 +136,46 @@ const todoReducer = (state = initialState, action) =>
 
                 })
             }
+        }
+
+        case TOGGLE_IMPORTANCE: {
+            return {
+                ...state,
+                todos: state.todos.map(todo=>{
+                    if(todo.id == action.payload)
+                    {
+                        return {
+                            ...todo,
+                            important: !todo.important
+                        }
+                    }
+
+                    return todo
+                })
+            }
+        }
+
+        case TOGGLE_ADD_TO_MY_DAY:{
+
+            return {
+                ...state,
+                todos: state.todos.map(todo=>{
+
+                    if(todo.id == action.payload)
+                    {
+                        return {
+                            ...todo,
+                            todosDetails: {
+                                ...todo.todosDetails,
+                                isInMyDay: !todo.todosDetails.isInMyDay
+                            }
+                        }
+                    }
+
+                    return todo
+                })
+            }
+
         }
 
         case ADD_STEPS: {

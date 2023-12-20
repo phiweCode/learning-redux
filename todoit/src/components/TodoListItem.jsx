@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { COMPLETE_TODO_ITEM, REMOVE_TODO_ITEM, SET_REMINDER, TOGGLE_REMINDER, TOGGLE_SELECTION } from '../reducer'
+import { COMPLETE_TODO_ITEM, REMOVE_TODO_ITEM, SET_REMINDER, TOGGLE_IMPORTANCE, TOGGLE_REMINDER, TOGGLE_SELECTION } from '../reducer'
 import reminder from '../utils/reminder'
 
 function TodoListItem({ id, todoText, completed, timestamp, reminders, active }) {
@@ -45,6 +45,17 @@ function TodoListItem({ id, todoText, completed, timestamp, reminders, active })
 
     }
 
+    const handleImportance = (e) => {
+
+        e.preventDefault()
+        e.stopPropagation()
+
+        dispatch({
+            "type": TOGGLE_IMPORTANCE,
+            "payload": id
+        })
+    }
+
     const handleSelection = (e) => {
 
         dispatch({"type": TOGGLE_SELECTION, "payload": id})
@@ -85,6 +96,10 @@ function TodoListItem({ id, todoText, completed, timestamp, reminders, active })
                             Switch
                         </button>
                     </article>
+
+                    <button type='button' onClick={handleImportance}>
+                        important
+                    </button>
 
                     <button onClick={handleDelete}>Delete</button>
                 </div>
