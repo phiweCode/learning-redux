@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import TodoListItem from '../TodoListItem'
 import UserInput from '../userInput'
 
-function Important() {
+function Important() {;
 
   const important = useSelector(state=>state.todos)
 

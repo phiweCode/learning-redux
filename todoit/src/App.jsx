@@ -22,9 +22,7 @@ function App() {
               </article>
 
           </article>
-          <aside className="todo-detail">
-            <DetailedTodo />
-          </aside>
+          <DetailedTodo />
         </main>
     </>
   );

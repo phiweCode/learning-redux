@@ -9,11 +9,37 @@ function nextTodoId(todos) {
     return maxId + 1
   }
 
+//update stats
+const updateStats = (state) => {
+      return {
+          ...state,
+            stats :{
+            completedTasks: state.todos.filter(todo=>todo.completed).length,
+            importantTasks: state.todos.filter(todo=>todo.important).length,
+            inMyDayTasks: state.todos.filter(todo=>todo.todosDetails.isInMyDay).length,
+            tasksTotal: state.todos.map(todo=>todo).length,
+            isPlanned: state.todos.filter(todo=>{
+                if(
+                    todo.todosDetails.reminder.isReminding ||
+                    todo.todosDetails.dueDate.isDue ||
+                    todo.todosDetails.repeat.isRepeating
+                ) return true
+
+            }).length
+    }
+
+            }
+
+
+}
+
 
 //action items
 export const ADD_TODO_ITEM = "todo/addTodo"
 export const REMOVE_TODO_ITEM = "todo/removeTodo"
 export const COMPLETE_TODO_ITEM = "todo/completeTodo"
+
+export const EDIT_TODO_ITEM = "todo/editTodoItem"
 
 export const TOGGLE_IMPORTANCE = "todo/toggleImportance"
 export const TOGGLE_ADD_TO_MY_DAY = "todo/toggleAddToMyDay"
@@ -21,7 +47,14 @@ export const TOGGLE_ADD_TO_MY_DAY = "todo/toggleAddToMyDay"
 export const SET_REMINDER = "todo/setReminder"
 export const TOGGLE_REMINDER = "todo/toggleReminder"
 
+export const SET_DUE_DATE = "todo/setDueDate"
+export const TOGGLE_DUE_DATE = "todo/toggleDueDate"
+
+export const SET_REPEATING = "todo/setRepeating"
+export const TOGGLE_REPEATING = "todo/toggleRepetition"
+
 export const TOGGLE_SELECTION = "todo/toggleSelection"
+
 export const ADD_STEPS = "todo/addSteps"
 export const ADD_NOTE = "todo/addNote"
 
@@ -64,7 +97,16 @@ const initialState = {
         },
     ],
 
+    stats: {
+        completedTasks: 1,
+        importantTasks: 1,
+        inMyDayTasks: 1,
+        tasksTotal: 1,
+        isPlanned: 1,
+    }
+
 }
+
 
 const todoReducer = (state = initialState, action) =>
 {
@@ -72,7 +114,7 @@ const todoReducer = (state = initialState, action) =>
 
         case ADD_TODO_ITEM:{
 
-            return {
+            const newTask = {
                 ...state,
                todos: [
                 ...state.todos,
@@ -108,21 +150,28 @@ const todoReducer = (state = initialState, action) =>
 
                             },
                 }
-               ]
+               ],
 
-            }
+           }
+
+            return updateStats(newTask)
+
         }
 
         case REMOVE_TODO_ITEM: {
-
-            return {
+            const newTaskList =  {
                 ...state,
                 todos: state.todos.filter(todo => todo.id != action.payload)
+                ,
             }
+
+
+            return updateStats(newTaskList)
         }
 
         case COMPLETE_TODO_ITEM: {
-            return {
+
+            const newTask = {
                 ...state,
                 todos: state.todos.map((todo)=>{
                     if(todo.id == action.payload)
@@ -133,13 +182,18 @@ const todoReducer = (state = initialState, action) =>
                          }
                     }
                     return todo
+                },
 
-                })
+                ),
+
             }
+
+            return updateStats(newTask)
         }
 
         case TOGGLE_IMPORTANCE: {
-            return {
+
+            const newState = {
                 ...state,
                 todos: state.todos.map(todo=>{
                     if(todo.id == action.payload)
@@ -151,18 +205,21 @@ const todoReducer = (state = initialState, action) =>
                     }
 
                     return todo
-                })
+                }),
             }
+
+            return updateStats(newState)
         }
 
-        case TOGGLE_ADD_TO_MY_DAY:{
+        case TOGGLE_ADD_TO_MY_DAY: {
 
-            return {
+            const newTask = {
                 ...state,
                 todos: state.todos.map(todo=>{
 
                     if(todo.id == action.payload)
                     {
+                        console.log(`id target ${todo.id}\n id sent ${action.payload}`)
                         return {
                             ...todo,
                             todosDetails: {
@@ -171,10 +228,14 @@ const todoReducer = (state = initialState, action) =>
                             }
                         }
                     }
+                    console.log(`id target ${todo.id}\n id sent ${action.payload}`)
 
                     return todo
-                })
+                },)
+
             }
+
+            return  updateStats(newTask)
 
         }
 
@@ -222,7 +283,7 @@ const todoReducer = (state = initialState, action) =>
 
         case SET_REMINDER: {
 
-            return {
+            const newState =  {
                 ...state,
                 todos: state.todos.map((todo)=>{
 
@@ -241,13 +302,15 @@ const todoReducer = (state = initialState, action) =>
                         }}
 
                         return todo
-                   })
-                }}
+                   }),
 
+                }
+            return updateStats(newState)
+        }
 
         case TOGGLE_REMINDER: {
 
-            return {
+            const newState = {
                 ...state,
                 todos: state.todos.map((todo)=>{
 
@@ -269,8 +332,128 @@ const todoReducer = (state = initialState, action) =>
 
                     return todo
 
-                })
+                }),
             }
+
+            return updateStats(newState)
+        }
+
+        case SET_DUE_DATE: {
+
+           const newState =  {
+            ...state,
+            todos: state.todos.map((todo)=>{
+
+                if(todo.id === action.payload.id){
+                    return {
+                        ...todo,
+                        todosDetails: {
+                        ...todo.todosDetails,
+                        dueDate: {
+                            isDue: true,
+                            dueDate: action.payload.dueDate,
+                            dueTime: action.payload.dueTime,
+                            type: action.payload.type,
+
+                        }
+
+                        }
+                    }
+                }
+                return todo
+            })
+        }
+
+            return updateStats(newState)
+        }
+
+        case TOGGLE_DUE_DATE: {
+
+            const newState = {
+                ...state,
+                todos: state.todos.map((todo)=>{
+
+                    if (todo.id == action.payload.id)
+                    {
+                        return {
+                            ...todo,
+                            todosDetails: {
+                                ...todo.todosDetails,
+                                dueDate:{
+                                     ...todo.todosDetails.dueDate,
+                                     isReminding: !todo.todosDetails.dueDate.isDue
+                                }
+                            }
+
+                        }
+
+                    }
+
+                    return todo
+
+                }),
+            }
+
+            return updateStats(newState)
+        }
+
+        case SET_REPEATING: {
+
+            const newSate = {
+                      ...state,
+                    todos: state.todos.map(todo=>
+                    {
+                        if(todo.id === action.payload.id)
+                        {
+                            return {
+                                ...todo,
+                                todosDetails: {
+                                    ...todo.todosDetails,
+                                    repeat: {
+                                        isRepeating: true,
+                                        frequency: action.payload.frequency
+                                    }
+
+                                }
+                            }
+                        }
+
+                        return todo
+                    })
+
+            }
+
+            return updateStats(newSate)
+        }
+
+        case TOGGLE_REPEATING: {
+
+            const newSate = {
+                      ...state,
+                    todos: state.todos.map(todo=>
+                    {
+                        if(todo.id === action.payload.id)
+                        {
+                            return {
+                                ...todo,
+                                todosDetails: {
+                                    ...todo.todosDetails,
+                                    repeat: {
+                                        ...todo.todosDetails.repeat,
+                                        isRepeating: !todo.todosDetails.repeat.isRepeating,
+
+                                    }
+
+                                }
+                            }
+                        }
+
+                        return todo
+                    })
+
+            }
+
+            return updateStats(newSate)
         }
 
         case ADD_NOTE: {
@@ -290,6 +473,25 @@ const todoReducer = (state = initialState, action) =>
                     return todo
                 })
             }
+        }
+
+        case EDIT_TODO_ITEM: {
+
+        const newState = {
+            ...state,
+            todos: state.todos.map(todo=>{
+                if(todo.id === action.payload.id)
+                {
+                    return {
+                        ...todo,
+                        inputText: action.payload.editedText
+                    }
+                }
+                return todo
+            })
+        }
+
+        return updateStats(newState)
         }
 
         default:{return state}

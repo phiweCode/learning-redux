@@ -1,7 +1,7 @@
 import React, {Fragment, useState} from 'react'
 import { SET_REMINDER } from '../../reducer'
 import { useDispatch } from 'react-redux'
-import DatePicker from './DatePicker'
+import DatePicking from './DatePicker'
 
 function Reminder({handleBlur, checked, activeTodo, selected, handleClose}) {
 
@@ -11,7 +11,8 @@ function Reminder({handleBlur, checked, activeTodo, selected, handleClose}) {
 
   const handleCustomReminder = (e) =>
   {
-    setCustomReminder(!customReminder)
+    setCustomReminder(true)
+    console.log("handle custom reminder called using set custom reminder")
   }
 
   const reminderOptions = (e) =>
@@ -67,8 +68,12 @@ function Reminder({handleBlur, checked, activeTodo, selected, handleClose}) {
                     "type": SET_REMINDER,
                     "payload":{
                     id: id,
-                    dueDate: datetime.date,
-                    dueTime: datetime.time,
+                    dueDate: new Date(today.getFullYear(), today.getMonth(), (today.getDate()+7)).toDateString(),
+                    dueTime: new Date(today.setHours(9,0)).toLocaleString('en-US', {
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    }),
                     formattedDate: "",
                     type: "Next week",
                     }
@@ -95,8 +100,6 @@ function Reminder({handleBlur, checked, activeTodo, selected, handleClose}) {
             }
         }
     }
-
-  console.log(customReminder,"custom reminder")
 
   return (
     <Fragment>
@@ -132,7 +135,7 @@ function Reminder({handleBlur, checked, activeTodo, selected, handleClose}) {
           {( selected.remindme ?
           <article className='detailed-set-reminders'>
             <ul>
-                <button onClick={handleClose}>
+                <button type="button" onClick={(e)=>handleClose(e)}>
                 close
                 </button>
 
@@ -142,9 +145,9 @@ function Reminder({handleBlur, checked, activeTodo, selected, handleClose}) {
                 <li onClick={handleCustomReminder}>Set date and time</li>
             </ul>
           </article>
-          : true?
+          : customReminder?
             <article className='custom-reminder detailed-set-reminders'>
-              <DatePicker
+              <DatePicking
               activeTodo={activeTodo}
               scheduleType={"custom-reminder"}
               handleCloseModal={handleCustomReminder}

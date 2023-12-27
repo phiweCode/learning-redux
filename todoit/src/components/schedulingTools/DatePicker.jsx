@@ -1,36 +1,38 @@
 import React, {Fragment, useState} from 'react'
 import { useDispatch } from 'react-redux'
-import { SET_REMINDER } from '../../reducer'
+import { SET_DUE_DATE, SET_REMINDER } from '../../reducer'
+import DatePicker from 'react-datepicker'
 
-function DatePicker({activeTodo, scheduleType, handleCloseModal , customReminder}) {
+function DatePicking({activeTodo, scheduleType, handleCloseModal , customReminder}) {
 
   const [isClosed, setIsClosed] = useState(false)
+  const [startDate, setStartDate] = useState(new Date());
   const [datetime, setDateTimes] = useState({
     date:activeTodo[0].todosDetails.reminderDate,
     time:activeTodo[0].todosDetails.reminderTime,
   })
 
+  console.log("New date",startDate)
+
   const dispatch = useDispatch()
 
   const handleDateInput = (e) =>
   {
-    e.preventDefault()
-    const {name, value} = e.target
-    setDateTimes((datetime)=>({
-    ...datetime, [name]: value
-    }))
+      setStartDate(e)
   }
 
   const handleClosing = (e) => {
     e.preventDefault()
+    e.stopPropagation()
     setIsClosed(true)
 
   }
 
   const handleSave = (e) => {
-
     e.preventDefault()
+    console.log("handle save", e)
     const activeTodoId = activeTodo[0].id
+
 
    switch(scheduleType)
    {
@@ -40,8 +42,8 @@ function DatePicker({activeTodo, scheduleType, handleCloseModal , customReminder
            "type": SET_REMINDER,
            "payload":{
            id: activeTodoId,
-           dueDate: datetime.date,
-           dueTime: datetime.time,
+           dueDate: `${startDate.getDate()} / ${startDate.getMonth()} / ${startDate.getFullYear()}`,
+           dueTime: `${startDate.getHours()}:${startDate.getMinutes()}`,
            formattedDate: "",
            type: "custom",
            }
@@ -50,11 +52,22 @@ function DatePicker({activeTodo, scheduleType, handleCloseModal , customReminder
        break;
 
     case "custom-due-date":
+      dispatch({
+        "type": SET_DUE_DATE,
+        "payload":{
+        id: activeTodoId,
+        dueDate: `${startDate.getDate()} / ${startDate.getMonth()} / ${startDate.getFullYear()}`,
+        dueTime: `${startDate.getHours()}:${startDate.getMinutes()}`,
+        formattedDate: "",
+        type: "custom",
+        }
+    })
        break
 
     default:
        break;
    }
+   setIsClosed(true)
 
   }
 
@@ -63,21 +76,31 @@ function DatePicker({activeTodo, scheduleType, handleCloseModal , customReminder
     {isClosed?
     <span></span>:
     <form>
-        <article className="date">
-            <input type='date' name="date" id="date" value={activeTodo[0].todosDetails.reminderDate} onChange={handleDateInput}/>
+
+
+        <article className='datepicker' >
+        <DatePicker
+        id="datePickerInput"
+        selected={startDate}
+        onChange={(e)=>handleDateInput(e)}
+        inline
+        timeInputLabel="Time:"
+        dateFormat="MM/dd/yyyy h:mm aa"
+        showTimeInput
+      />
         </article>
-        <article className="time">
-            <input type="time" name="time" id="time" value={activeTodo[0].todosDetails.reminderTime} onChange={handleDateInput}/>
-        </article>
+
         <article className='form-btn'>
             <span><button onClick={handleClosing}>Cancel</button></span>
             <span><button onClick={handleSave}>Save</button></span>
         </article>
     </form>
 
+
+
     }
     </Fragment>
   )
 }
 
-export default DatePicker
+export default DatePicking
