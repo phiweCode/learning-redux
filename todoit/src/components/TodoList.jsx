@@ -3,8 +3,9 @@ import { useSelector } from 'react-redux'
 import TodoListItem from './TodoListItem'
 
 function TodoList() {
+
   const todoList = useSelector((state) => state.todos)
-  console.log(todoList)
+  console.log("primary importance",todoList.todos.importance)
 
   return (
     <Fragment>
@@ -16,6 +17,7 @@ function TodoList() {
             completed={todo.completed}
             timestamp={todo.timestamp}
             reminders = {todo.todosDetails.reminder}
+            importance={todo.important}
             active={todo.selected}
           />
           ).reverse()}

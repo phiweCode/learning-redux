@@ -20,16 +20,20 @@ function UserInput() {
 
     return (
         <Fragment>
-          
-            <input
-                type="text"
-                id="todo-text"
-                name="todo-text"
-                value={inputText}
-                placeholder="whats on your mind ?"
-                onKeyDown={handleInput}
-                onChange={(e) => setInputText(e.target.value)}
-            />
+
+            <label htmlFor='todo-text'>
+                <article className='user-input-container'>
+                    <input
+                        type="text"
+                        id="todo-text"
+                        name="todo-text"
+                        value={inputText}
+                        placeholder="Whats on your mind ?"
+                        onKeyDown={handleInput}
+                        onChange={(e) => setInputText(e.target.value)}
+                    />
+                </article>
+            </label>
         </Fragment>
     )
 }

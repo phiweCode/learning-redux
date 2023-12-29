@@ -76,8 +76,6 @@ function DatePicking({activeTodo, scheduleType, handleCloseModal , customReminde
     {isClosed?
     <span></span>:
     <form>
-
-
         <article className='datepicker' >
         <DatePicker
         id="datePickerInput"
@@ -91,8 +89,8 @@ function DatePicking({activeTodo, scheduleType, handleCloseModal , customReminde
         </article>
 
         <article className='form-btn'>
-            <span><button onClick={handleClosing}>Cancel</button></span>
-            <span><button onClick={handleSave}>Save</button></span>
+           <button onClick={handleClosing}>Cancel</button>
+           <button onClick={handleSave}>Save</button>
         </article>
     </form>
 

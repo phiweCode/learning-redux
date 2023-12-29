@@ -14,13 +14,8 @@ function App() {
     <>
         <main className="main">
           <Header />
-          <article className="main-content">
-
-              <article className="todolist-container" style={{height: "100vh"}}>
-               {/*  <TodoList /> */}
-                <Outlet />
-              </article>
-
+          <article className="todolist-container">
+            <Outlet />
           </article>
           <DetailedTodo />
         </main>
