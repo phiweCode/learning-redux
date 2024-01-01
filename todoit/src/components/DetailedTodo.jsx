@@ -1,20 +1,27 @@
 import React, { Fragment, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
+  ACTIVE_STEP,
   ADD_NOTE,
   ADD_STEPS,
+  ADD_TODO_ITEM,
+  COMPLETE_STEP,
   COMPLETE_TODO_ITEM,
+  DISABLE_PLAN,
   EDIT_TODO_ITEM,
+  REMOVE_STEP,
   REMOVE_TODO_ITEM,
   SET_DUE_DATE,
   SET_REMINDER,
   SET_REPEATING,
   TOGGLE_ADD_TO_MY_DAY,
   TOGGLE_IMPORTANCE,
+  TOGGLE_REMINDER,
 } from "../reducer";
 import DatePicking from "./schedulingTools/DatePicker";
 
 function DetailedTodo() {
+
   const dispatch = useDispatch();
   const [steps, setSteps] = useState("");
   const [customReminder, setCustomReminder] = useState({
@@ -29,8 +36,10 @@ function DetailedTodo() {
   });
 
   const [moreOpen, setMoreOpen] = useState(false)
+  const [rows, setRows] = useState(1);
+  const [rows1, setRows1] = useState(2);
 
-  const activeTodo = getTodoDetails.filter((active) => active.selected == true);
+  const activeTodo = getTodoDetails.filter((active) => active?.selected == true);
   const note = activeTodo[0]?.notes;
   const id = activeTodo[0]?.id;
 
@@ -42,11 +51,60 @@ function DetailedTodo() {
       type: ADD_STEPS,
       payload: {
         id: activeTodo[0].id,
-        steps: steps,
+        completed: false,
+        textInput: steps,
+        active: false,
       },
     });
     setSteps("");
   };
+
+  const handleStepCompletion = (idx) => {
+
+    dispatch({
+      "type": COMPLETE_STEP,
+      "payload": {
+        id: id,
+        index: idx,
+      }
+    })
+
+  }
+
+  const handleStepRemoval = (idx) => {
+
+    dispatch({
+      "type": REMOVE_STEP,
+      "payload": {
+        id: id,
+        index: idx,
+      }
+    })
+
+  }
+
+  const handlePromoteToTask = (task) => {
+
+    dispatch({
+      "type": ADD_TODO_ITEM,
+      "payload": task,
+    })
+  }
+
+  const handleMoreOptions = (e,idx) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setMoreOpen((state)=>!state)
+    dispatch({
+      "type": ACTIVE_STEP,
+      "payload": {
+        id: id,
+        index: idx,
+      }
+    })
+
+  }
+
 
   const checked = (e) => {
     e.preventDefault();
@@ -101,6 +159,15 @@ function DetailedTodo() {
 
   const handleAddNote = (e) => {
     e.preventDefault();
+    const textarea = e.target;
+    const minRows = 3;
+    const maxRows = 10;
+
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+
+    const currentRows = Math.ceil(textarea.scrollHeight / 40);
+    setRows1(Math.min(maxRows, Math.max(minRows, currentRows)));
     dispatch({
       type: ADD_NOTE,
       payload: {
@@ -394,6 +461,16 @@ function DetailedTodo() {
 
   const handleDetailedInput = (e) => {
     e.preventDefault();
+    const textarea = e.target;
+    const minRows = 1;
+    const maxRows = 5;
+
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+
+   /*  const currentRows = Math.ceil(textarea.scrollHeight / 30);
+    setRows(Math.min(maxRows, Math.max(minRows, currentRows))); */
+
     dispatch({
       type: EDIT_TODO_ITEM,
       payload: {
@@ -417,28 +494,62 @@ function DetailedTodo() {
     })
   }
 
-  const handleMoreOptions = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setMoreOpen((state)=>!state)
-  }
-
   const handleDelete = (e) => {
     e.preventDefault()
     e.stopPropagation()
 
     dispatch({
       "type": REMOVE_TODO_ITEM,
-      "payload": id, 
+      "payload": id,
     })
+  }
+
+
+  const toggleReminder = (e) => {
+
+    e.preventDefault()
+    e.stopPropagation()
+
+    dispatch({
+      "type": TOGGLE_REMINDER,
+      "payload": {
+        id: id,
+      }
+    })
+  }
+
+  const disablePlan = (e, type) => {
+
+    e.preventDefault()
+    e.stopPropagation()
+
+    console.log(type)
+
+    dispatch({
+      "type": DISABLE_PLAN,
+      "payload": {
+        id: id,
+        "type": type,
+      }
+    })
+  }
+
+  const handleFileUpload = (e) => {
+
+    const selectedFile = e.target.files[0]
+
+    console.log("file object",selectedFile)
+    console.log("file object",selectedFile.name)
+    console.log("file object",selectedFile.type)
+    console.log("file object",selectedFile.size)
   }
 
   return (
     <Fragment>
       {activeTodo.length != 0 ? (
         <section className="detailed-todo-section">
-          <article className="detailed-todo-elements">
 
+          <article className="detailed-todo-elements">
           {/*
               This is the detailed section view Ui to
               handle use interaction with  details of the
@@ -498,9 +609,15 @@ function DetailedTodo() {
               <article className="todo-detailed-input">
                 <textarea
                   type="text"
+                  id="todo-detailed-input"
+                  rows ={ rows}
                   value={activeTodo[0].inputText}
                   onChange={handleDetailedInput}
-                  cols={18}
+                  maxLength={250}
+                  style={{
+                    width: '90%',
+                    overflowY: "hidden",
+                      }}
                 />
               </article>
 
@@ -530,97 +647,140 @@ function DetailedTodo() {
 
             <article className="steps">
               <ul>
+
                 {activeTodo[0].todosDetails.steps.map((step, idx) => (
                   <li key={activeTodo[0].id + 10255 + idx}>
                     <article className="steps-container">
+                        <article className="steps-icon  steps-check" onClick={()=> handleStepCompletion(idx)}>
+                        {step.completed ? (
 
-                    <article className="steps-icon  steps-check">
-                        <svg
+                          <article  >
+                            <div >
+                          <svg
+                          className="checked-filled"
                           xmlns="http://www.w3.org/2000/svg"
-                          height="16"
-                          width="16"
+                          height="15"
+                          width="15"
                           viewBox="0 0 512 512"
                         >
-                          <path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z" />
+                          <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z" />
                         </svg>
-                      </article>
-
-                    <article className="step-item">
-                      <article className="step-text">
-                          <p>{step}</p>
+                        </div>
                         </article>
 
-                      <article className=" steps-menu-icon" >
 
-                      <article className="more-options" onBlur={handleMoreOptions} onClick={handleMoreOptions}>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            height="20"
-                            width="6"
-                            viewBox="0 0 128 512"
-                          >
-                            <path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z" />
-                          </svg>
-                        </article>
+                        ) : (
+                          <article className="incomplete-icons-step" >
+                            <div className="first-step"  >
 
-                        { moreOpen ? <article className="steps-more-options">
-                        <article className="complete-step">
-                          <article className="complete-step-icon">
-                          <svg
-                          className="checked-hollow"
-                          xmlns="http://www.w3.org/2000/svg"
-                          height="20"
-                          width="20"
-                          viewBox="0 0 512 512"
-                        >
-                          <path d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-111 111-47-47c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l64 64c9.4 9.4 24.6 9.4 33.9 0L369 209z" />
-                        </svg>
+                              <svg
+                                className="checked-hollow"
+                                xmlns="http://www.w3.org/2000/svg"
+                                height="15"
+                                width="15"
+                                viewBox="0 0 512 512"
+                              >
+                                <path d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-111 111-47-47c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l64 64c9.4 9.4 24.6 9.4 33.9 0L369 209z" />
+                              </svg>
+
+                            </div>
+                            <div className="second" >
+
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                height="15"
+                                width="15"
+                                viewBox="0 0 512 512"
+                              >
+                                <path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z" />
+                              </svg>
+
+                            </div>
                           </article>
-                          <article className="complete-step-texts">
-                            <p>Mark as complete</p>
+                        )}
                           </article>
-                        </article>
-                        <article className="promote-step">
-                          <article className="promote-step-icon">
-                          <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          height="18"
-                          width="18"
-                          viewBox="0 0 448 512"
-                        >
-                          <path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z" />
-                        </svg>
-                          </article>
-                          <article className="promote-step-texts">
-                            <p>Promote to task</p>
-                          </article>
-                        </article>
-                        <hr />
-                        <article className="delete-step">
-                        <article className="delete-step-icon">
-                          <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          height="16"
-                          width="14"
-                          viewBox="0 0 448 512"
-                        >
-                          <path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm96 64c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z" />
-                        </svg>
-                        </article>
-                        <article className="delete-step-texts">
-                          <p>Delete step</p>
-                        </article>
-                        </article>
-                    </article> : ''}
 
+                        <article className="step-item">
+                          <article className="step-text">
+                              <p>{step.textInput}</p>
+                            </article>
 
-                        </article>
-                    </article>
+                          <article className=" steps-menu-icon" >
+
+                            <article className="more-options" onBlur={handleMoreOptions} onClick={(e)=>handleMoreOptions(e,idx)}>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  height="20"
+                                  width="6"
+                                  viewBox="0 0 128 512"
+                                >
+                                  <path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z" />
+                                </svg>
+                              </article>
+
+                            { step.active ?
+                            <article className="steps-more-options">
+                            <article className="complete-step" onClick={()=>handleStepCompletion(idx)}>
+                              <article className="complete-step-icon">
+                              <svg
+                              className="checked-hollow"
+                              xmlns="http://www.w3.org/2000/svg"
+                              height="20"
+                              width="20"
+                              viewBox="0 0 512 512"
+                            >
+                              <path d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-111 111-47-47c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l64 64c9.4 9.4 24.6 9.4 33.9 0L369 209z" />
+                            </svg>
+                              </article>
+                              <article className="complete-step-texts">
+                                <p>Mark as complete</p>
+                              </article>
+                            </article>
+
+                            <article className="promote-step" onClick={()=>handlePromoteToTask(step.textInput) }>
+                              <article className="promote-step-icon">
+                              <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              height="18"
+                              width="18"
+                              viewBox="0 0 448 512"
+                            >
+                              <path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z" />
+                            </svg>
+                              </article>
+                              <article className="promote-step-texts">
+                                <p>Promote to task</p>
+                              </article>
+                            </article>
+
+                            <hr />
+                            <article className="delete-step" onClick={()=>handleStepRemoval(idx)}>
+                            <article className="delete-step-icon">
+                              <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              height="16"
+                              width="14"
+                              viewBox="0 0 448 512"
+                            >
+                              <path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm96 64c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z" />
+                            </svg>
+                            </article>
+
+                            <article className="delete-step-texts">
+                              <p>Delete step</p>
+                            </article>
+                            </article>
+                              </article> : ''}
+
+                            </article>
+                          </article>
 
                     </article>
                   </li>
                 ))}
+
               </ul>
+
               <label htmlFor="step-input">
                 <button
                   className="add-step-btn"
@@ -686,93 +846,93 @@ function DetailedTodo() {
           <article id="edit-reminders" className="detailed-todo-elements">
             <ul className="set-schedule">
               <li className="detailed-customs">
-                <input
-                  type="radio"
-                  className="detail-option"
-                  id="remindme"
-                  name="options"
-                  onBlur={handleBlur}
-                  onChange={checked}
-                />
+                  <input
+                    type="radio"
+                    className="detail-option"
+                    id="remindme"
+                    name="options"
+                    onBlur={handleBlur}
+                    onChange={checked}
+                  />
 
-                <label htmlFor="remindme">
-                  <article className="schedulings">
-                    <article className="scheduling-icon">
+                  <label className={activeTodo[0].todosDetails.reminder.isReminding ? "active-label": ""} htmlFor="remindme">
+                    <article className="schedulings">
+                      <article className="scheduling-icon">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          height="16"
+                          width="14"
+                          viewBox="0 0 448 512"
+                        >
+                          <path d="M224 0c-17.7 0-32 14.3-32 32V51.2C119 66 64 130.6 64 208v25.4c0 45.4-15.5 89.5-43.8 124.9L5.3 377c-5.8 7.2-6.9 17.1-2.9 25.4S14.8 416 24 416H424c9.2 0 17.6-5.3 21.6-13.6s2.9-18.2-2.9-25.4l-14.9-18.6C399.5 322.9 384 278.8 384 233.4V208c0-77.4-55-142-128-156.8V32c0-17.7-14.3-32-32-32zm0 96c61.9 0 112 50.1 112 112v25.4c0 47.9 13.9 94.6 39.7 134.6H72.3C98.1 328 112 281.3 112 233.4V208c0-61.9 50.1-112 112-112zm64 352H224 160c0 17 6.7 33.3 18.7 45.3s28.3 18.7 45.3 18.7s33.3-6.7 45.3-18.7s18.7-28.3 18.7-45.3z" />
+                        </svg>
+                      </article>
+                      {activeTodo[0].todosDetails.reminder.isReminding ? (
+                        <article className="reminder-display">
+                          <span>
+                            {`Remind me at ${activeTodo[0].todosDetails.reminder.reminderTime}`}
+                          </span>
+                          <span>
+                            {activeTodo[0].todosDetails.reminder.type == "today"
+                              ? "Today"
+                              : activeTodo[0].todosDetails.reminder.type ==
+                                "tommorow"
+                              ? "Tommorow"
+                              : activeTodo[0].todosDetails.reminder.type ==
+                                "Next week"
+                              ? "Next week"
+                              : activeTodo[0].todosDetails.reminder.type ==
+                                "custom"
+                              ? activeTodo[0].todosDetails.reminder.reminderDate
+                              : ""}
+                          </span>
+                        </article>
+                      ) : (
+                        "Reminder"
+                      )}
+                    </article>
+                    <article className="scheduling-icon" onClick={(e)=>disablePlan(e,"reminder")}>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         height="16"
-                        width="14"
-                        viewBox="0 0 448 512"
+                        width="12"
+                        viewBox="0 0 384 512"
                       >
-                        <path d="M224 0c-17.7 0-32 14.3-32 32V51.2C119 66 64 130.6 64 208v25.4c0 45.4-15.5 89.5-43.8 124.9L5.3 377c-5.8 7.2-6.9 17.1-2.9 25.4S14.8 416 24 416H424c9.2 0 17.6-5.3 21.6-13.6s2.9-18.2-2.9-25.4l-14.9-18.6C399.5 322.9 384 278.8 384 233.4V208c0-77.4-55-142-128-156.8V32c0-17.7-14.3-32-32-32zm0 96c61.9 0 112 50.1 112 112v25.4c0 47.9 13.9 94.6 39.7 134.6H72.3C98.1 328 112 281.3 112 233.4V208c0-61.9 50.1-112 112-112zm64 352H224 160c0 17 6.7 33.3 18.7 45.3s28.3 18.7 45.3 18.7s33.3-6.7 45.3-18.7s18.7-28.3 18.7-45.3z" />
+                        <path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z" />
                       </svg>
                     </article>
-                    {activeTodo[0].todosDetails.reminder.isReminding ? (
-                      <article className="reminder-display">
-                        <span>
-                          {`Remind me at ${activeTodo[0].todosDetails.reminder.reminderTime}`}
-                        </span>
-                        <span>
-                          {activeTodo[0].todosDetails.reminder.type == "today"
-                            ? "Today"
-                            : activeTodo[0].todosDetails.reminder.type ==
-                              "tommorow"
-                            ? "Tommorow"
-                            : activeTodo[0].todosDetails.reminder.type ==
-                              "Next week"
-                            ? "Next week"
-                            : activeTodo[0].todosDetails.reminder.type ==
-                              "custom"
-                            ? activeTodo[0].todosDetails.reminder.reminderDate
-                            : ""}
-                        </span>
-                      </article>
-                    ) : (
-                      "Reminder"
-                    )}
-                  </article>
-                  <article className="scheduling-icon">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      height="16"
-                      width="12"
-                      viewBox="0 0 384 512"
-                    >
-                      <path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z" />
-                    </svg>
-                  </article>
-                </label>
+                  </label>
 
-                {selected.remindme ? (
-                  <article className="detailed-set-reminders">
-                    <ul>
-                      <button type="button" onClick={(e) => handleClose(e)}>
-                        close
-                      </button>
+                  {selected.remindme ? (
+                    <article className="detailed-set-reminders">
+                      <ul>
+                        <button type="button" onClick={(e) => handleClose(e)}>
+                          close
+                        </button>
 
-                      <li onClick={() => reminderOptions("later today")}>
-                        Later today
-                      </li>
-                      <li onClick={() => reminderOptions("tommorow")}>
-                        Tommorow{" "}
-                      </li>
-                      <li onClick={() => reminderOptions("next week")}>
-                        Next week
-                      </li>
-                      <li onClick={handleCustomReminder}>Set date and time</li>
-                    </ul>
-                  </article>
-                ) : customReminder.reminder ? (
-                  <article className="custom-reminder ">
-                    <DatePicking
-                      activeTodo={activeTodo}
-                      scheduleType={"custom-reminder"}
-                    />
-                  </article>
-                ) : (
-                  <span></span>
-                )}
-              </li>
+                        <li onClick={() => reminderOptions("later today")}>
+                          Later today
+                        </li>
+                        <li onClick={() => reminderOptions("tommorow")}>
+                          Tommorow{" "}
+                        </li>
+                        <li onClick={() => reminderOptions("next week")}>
+                          Next week
+                        </li>
+                        <li onClick={handleCustomReminder}>Set date and time</li>
+                      </ul>
+                    </article>
+                  ) : customReminder.reminder ? (
+                    <article className="custom-reminder ">
+                      <DatePicking
+                        activeTodo={activeTodo}
+                        scheduleType={"custom-reminder"}
+                      />
+                    </article>
+                  ) : (
+                    <span></span>
+                  )}
+                </li>
 
               <li className="detailed-customs">
                 <input
@@ -784,7 +944,7 @@ function DetailedTodo() {
                   onChange={checked}
                 />
 
-                <label htmlFor="due-date">
+                <label className={activeTodo[0].todosDetails.dueDate.isDue ? "active-label": ""} htmlFor="due-date">
                   <article className="schedulings">
                     <article className="scheduling-icon">
                       <svg
@@ -820,7 +980,7 @@ function DetailedTodo() {
                       "Add due date"
                     )}
                   </article>
-                  <article className="scheduling-icon">
+                  <article className="scheduling-icon" onClick={(e)=>disablePlan(e,"due_date")}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       height="16"
@@ -870,7 +1030,7 @@ function DetailedTodo() {
                   onChange={checked}
                 />
 
-                <label htmlFor="repeat">
+                <label className={activeTodo[0].todosDetails.repeat.isRepeating ? "active-label": ""} htmlFor="repeat">
                   <article className="schedulings">
                     <article className="scheduling-icon">
                       <svg
@@ -910,7 +1070,7 @@ function DetailedTodo() {
                       "Repeat"
                     )}
                   </article>
-                  <article className="scheduling-icon">
+                  <article className="scheduling-icon" onClick={(e)=>disablePlan(e,"repeat")}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       height="16"
@@ -939,20 +1099,43 @@ function DetailedTodo() {
                 )}
               </li>
             </ul>
-          </article>
+            </article>
 
           <article className="detailed-todo-elements">
-            <input type="file" accept=".jpg, .png" />
-          </article>
+                  <article className="button-wrap">
+
+                    <label htmlFor="file-upload" className="file-upload-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512"><path d="M364.2 83.8c-24.4-24.4-64-24.4-88.4 0l-184 184c-42.1 42.1-42.1 110.3 0 152.4s110.3 42.1 152.4 0l152-152c10.9-10.9 28.7-10.9 39.6 0s10.9 28.7 0 39.6l-152 152c-64 64-167.6 64-231.6 0s-64-167.6 0-231.6l184-184c46.3-46.3 121.3-46.3 167.6 0s46.3 121.3 0 167.6l-176 176c-28.6 28.6-75 28.6-103.6 0s-28.6-75 0-103.6l144-144c10.9-10.9 28.7-10.9 39.6 0s10.9 28.7 0 39.6l-144 144c-6.7 6.7-6.7 17.7 0 24.4s17.7 6.7 24.4 0l176-176c24.4-24.4 24.4-64 0-88.4z"/></svg>
+                    <span><p>Add file</p></span>
+                    </label>
+
+                    <input
+                    type="file"
+                    id="file-upload"
+                    name="file-up"
+                    accept=".jpg, .png"
+                    onChange = {handleFileUpload}
+                    />
+                  </article>
+            </article>
 
           <article className="detailed-todo-elements">
             <textarea
               value={note}
+              id="add-to-note"
               onChange={handleAddNote}
-              rows="4"
-              cols="20"
+              maxLength={100}
+              rows={rows1}
+              placeholder="Add note"
+              style={{
+                width: '100%',
+                overflowY: "hidden",
+                border: "none",
+                outline: "none",
+                fontSize: "10px !important"
+                  }}
             ></textarea>
-          </article>
+            </article>
 
           <article className="detailed-delete" onClick={handleDelete}>
             <article className="detailed-delete-text">
@@ -968,11 +1151,12 @@ function DetailedTodo() {
                 <path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm96 64c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z" />
               </svg>
             </article>
-          </article>
+            </article>
+
         </section>
-      ) : (
-        ""
-      )}
+
+        ) : ("")}
+
     </Fragment>
   );
 }

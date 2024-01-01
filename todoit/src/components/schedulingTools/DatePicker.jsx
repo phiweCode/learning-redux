@@ -71,6 +71,16 @@ function DatePicking({activeTodo, scheduleType, handleCloseModal , customReminde
 
   }
 
+  const customTimeInput = ({ date, value, onChange }) => {
+    <input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      style={{ border: "solid 1px pink" }}
+    />
+
+
+  }
+
   return (
     <Fragment>
     {isClosed?
@@ -82,8 +92,9 @@ function DatePicking({activeTodo, scheduleType, handleCloseModal , customReminde
         selected={startDate}
         onChange={(e)=>handleDateInput(e)}
         inline
-        timeInputLabel="Time:"
+        timeInputLabel=""
         dateFormat="MM/dd/yyyy h:mm aa"
+        wrapperClassName="date-picker-wrapper"
         showTimeInput
       />
         </article>

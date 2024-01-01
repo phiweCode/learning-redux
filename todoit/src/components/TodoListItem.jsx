@@ -3,11 +3,11 @@ import { useDispatch, useSelector } from 'react-redux'
 import { COMPLETE_TODO_ITEM, REMOVE_TODO_ITEM, SET_REMINDER, TOGGLE_IMPORTANCE, TOGGLE_REMINDER, TOGGLE_SELECTION } from '../reducer'
 
 
-function TodoListItem({ id, todoText, completed, timestamp, active }) {
+function TodoListItem({ id, todoText, completed, timestamp, active, todoDetails }) {
 
     const dispatch = useDispatch()
     const importanceStatus = useSelector((state)=>state.todos)
-    const importance = importanceStatus.filter(todo=>todo.id === id)
+    const importance = importanceStatus.filter(todo=>todo?.id === id)
 
     console.log("importance status", importance[0].important)
 
@@ -39,16 +39,68 @@ function TodoListItem({ id, todoText, completed, timestamp, active }) {
     <Fragment>
         <li key={id}>
             <article
-            className={ active ? 'todo-item active' :'todo-item'}
+            className={ active ? 'todo-item active' :'todo-item inactive'}
             onClick={handleSelection}>
 
                 <div className='list-details'>
                     <article className='checkbox'>
-                        <input type='checkbox' onChange={(e)=>handleCompletion(e)}  checked={completed? true : false}/>
+
+                    <article className="completion-status"  onClick={handleCompletion}>
+                    {completed ? (
+
+                      <article className="incomplete-icons" >
+                        <div className="first-complete"  >
+                      <svg
+                      className="checked-filled"
+                      xmlns="http://www.w3.org/2000/svg"
+                      height="20"
+                      width="20"
+                      viewBox="0 0 512 512"
+                    >
+                      <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z" />
+                    </svg>
+                    </div>
+                    </article>
+
+
+                    ) : (
+                      <article className="incomplete-icons" >
+                        <div className="first"  >
+
+                          <svg
+                            className="checked-hollow"
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="20"
+                            width="20"
+                            viewBox="0 0 512 512"
+                          >
+                            <path d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-111 111-47-47c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l64 64c9.4 9.4 24.6 9.4 33.9 0L369 209z" />
+                          </svg>
+
+                        </div>
+                        <div className="second" >
+
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="20"
+                            width="20"
+                            viewBox="0 0 512 512"
+                          >
+                            <path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z" />
+                          </svg>
+
+                        </div>
+                      </article>
+                    )}
+                  </article>
+
+                        <input type='checkbox'
+                        onChange={(e)=>handleCompletion(e)}
+                        checked={completed? true : false}/>
                     </article>
 
                     <article className='todo-text'>
-                        <p>{todoText}</p>
+                      {todoText}
                     </article>
 
                     <article className="importance-status" onClick={handleImportance}>

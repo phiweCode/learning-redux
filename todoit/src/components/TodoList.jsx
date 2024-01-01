@@ -19,6 +19,7 @@ function TodoList() {
             reminders = {todo.todosDetails.reminder}
             importance={todo.important}
             active={todo.selected}
+            todosDetails = {todo.todosDetails}
           />
           ).reverse()}
       </ul>

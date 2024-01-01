@@ -47,15 +47,21 @@ export const TOGGLE_ADD_TO_MY_DAY = "todo/toggleAddToMyDay"
 export const SET_REMINDER = "todo/setReminder"
 export const TOGGLE_REMINDER = "todo/toggleReminder"
 
+
 export const SET_DUE_DATE = "todo/setDueDate"
 export const TOGGLE_DUE_DATE = "todo/toggleDueDate"
 
 export const SET_REPEATING = "todo/setRepeating"
 export const TOGGLE_REPEATING = "todo/toggleRepetition"
 
+export const DISABLE_PLAN = "todo/disablePlan"
+
 export const TOGGLE_SELECTION = "todo/toggleSelection"
 
 export const ADD_STEPS = "todo/addSteps"
+export const COMPLETE_STEP = "todo/completeStep"
+export const ACTIVE_STEP = "todo/activeStep"
+export const REMOVE_STEP = "todo/removeStep"
 export const ADD_NOTE = "todo/addNote"
 
 
@@ -68,14 +74,19 @@ const initialState = {
             completed: false,
             selected: true,
             important: true,
-            steps : [''],
+            steps : [{
+                completed: false,
+                textInput: "This is the first step",
+                active: false,
+                index: 0,
+            }],
             timestamp: new Date().toLocaleString(),
             notes: "This is a personal note",
             todosDetails: {
                 steps: [],
                 isInMyDay: true,
                 reminder: {
-                    isReminding: false,
+                    isReminding: true,
                     reminderDate: "",
                     reminderTime: "",
                     dateTime: "",
@@ -107,7 +118,7 @@ const initialState = {
 
 }
 
-
+// 
 const todoReducer = (state = initialState, action) =>
 {
     switch (action.type){
@@ -250,7 +261,100 @@ const todoReducer = (state = initialState, action) =>
                     return {
                         ...todo,
                         todosDetails: {...todo.todosDetails,
-                            steps: [...todo.todosDetails.steps, action.payload.steps]
+                            steps: [...todo.todosDetails.steps, {
+                                completed: action.payload.completed,
+                                textInput: action.payload.textInput,
+                                active: action.payload.active,
+                                index: action.payload.index
+                            }]
+                        }
+
+                    }
+                }
+
+                return todo
+                })
+            }
+        }
+
+        case COMPLETE_STEP: {
+
+            return {
+                ...state,
+                todos: state.todos.map(todo=>{
+
+                if (todo.id == action.payload.id)
+                {
+                    return {
+                        ...todo,
+                        todosDetails: {...todo.todosDetails,
+                            steps: todo.todosDetails.steps.map((step,stepIdx)=>{
+                                if (stepIdx === action.payload.index)
+                                {
+                                    return {
+                                        ...step,
+                                        completed: !todo.todosDetails.steps[stepIdx].completed
+                                    }
+                                }
+                                return step
+                            })
+                        }
+
+                    }
+                }
+
+                return todo
+                })
+            }
+        }
+
+        case REMOVE_STEP: {
+
+            return {
+                ...state,
+                todos: state.todos.map(todo=>{
+
+                if (todo.id == action.payload.id)
+                {
+                    return {
+                        ...todo,
+                        todosDetails: {...todo.todosDetails,
+                            steps: todo.todosDetails.steps.filter((step,stepIdx)=> stepIdx != action.payload.index )
+                        }
+
+                    }
+                }
+
+                return todo
+
+                })
+            }
+        }
+
+        case ACTIVE_STEP: {
+
+            return {
+                ...state,
+                todos: state.todos.map(todo=>{
+
+                if (todo.id == action.payload.id)
+                {
+                    return {
+                        ...todo,
+                        todosDetails: {...todo.todosDetails,
+                            steps: todo.todosDetails.steps.map((step,stepIdx)=>{
+                                if (stepIdx === action.payload.index)
+                                {
+                                    return {
+                                        ...step,
+                                        active: !todo.todosDetails.steps[stepIdx].active
+                                    }
+                                }
+                                return  {
+                                    ...step,
+                                    active: false
+                                }
+                            })
                         }
 
                     }
@@ -327,6 +431,72 @@ const todoReducer = (state = initialState, action) =>
                             }
 
                         }
+
+                    }
+
+                    return todo
+
+                }),
+            }
+
+            return updateStats(newState)
+        }
+
+        case DISABLE_PLAN: {
+
+            const newState = {
+                ...state,
+                todos: state.todos.map((todo)=>{
+
+                    if (todo.id == action.payload.id)
+                    {
+                        switch(action.payload.type){
+
+                            case "reminder": {
+
+                                return {
+                                    ...todo,
+                                    todosDetails: {
+                                        ...todo.todosDetails,
+                                        reminder:{
+                                             ...todo.todosDetails.reminder,
+                                             isReminding: false,
+                                        }
+                                    }
+
+                                }
+
+                            }
+
+                            case "due_date": {
+                                return {
+                                    ...todo,
+                                    todosDetails: {
+                                        ...todo.todosDetails,
+                                        dueDate:{
+                                             ...todo.todosDetails.dueDate,
+                                             isDue: false,
+                                        }
+                                    }
+
+                                }
+                            }
+
+                            case "repeat": {
+                                return {
+                                    ...todo,
+                                    todosDetails: {
+                                        ...todo.todosDetails,
+                                        repeat:{
+                                             ...todo.todosDetails.repeat,
+                                             isRepeating: false
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+
 
                     }
 
@@ -494,12 +664,10 @@ const todoReducer = (state = initialState, action) =>
         return updateStats(newState)
         }
 
-        default:{return state}
+        default:{
+            return state
+        }
     }
 }
-
-const rootReducer = combineReducers({
-
-})
 
 export default todoReducer;
